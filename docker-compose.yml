@@ -1,0 +1,70 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: database
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: laravel_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: laravel_user
+    ports:
+      - "3306:3306"
+    networks:
+      - laravel_network
+
+  # Serveur 1
+  server_1_php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: server_1_php
+    volumes:
+      - ./server_1:/var/www
+    networks:
+      - laravel_network
+    depends_on:
+      - db
+
+  server_1_nginx:
+    image: nginx:stable-alpine
+    container_name: server_1_nginx
+    ports:
+      - "8081:80"
+    volumes:
+      - ./server_1:/var/www
+      - ./docker/nginx/server_1.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - laravel_network
+    depends_on:
+      - server_1_php
+
+  # Serveur 2
+  server_2_php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: server_2_php
+    volumes:
+      - ./server_2:/var/www
+    networks:
+      - laravel_network
+    depends_on:
+      - db
+
+  server_2_nginx:
+    image: nginx:stable-alpine
+    container_name: server_2_nginx
+    ports:
+      - "8082:80"
+    volumes:
+      - ./server_2:/var/www
+      - ./docker/nginx/server_2.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - laravel_network
+    depends_on:
+      - server_2_php
+
+networks:
+  laravel_network:
+    driver: bridge
