@@ -38,6 +38,7 @@ services:
       - laravel_network
     depends_on:
       - server_1_php
+      - redis
 
   # Serveur 2
   server_2_php:
@@ -64,6 +65,27 @@ services:
       - laravel_network
     depends_on:
       - server_2_php
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel_network
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    networks:
+      - laravel_network
+    depends_on:
+      - redis
 
 networks:
   laravel_network:
